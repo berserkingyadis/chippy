@@ -17,7 +17,7 @@
 #include "disassembler.h"
 #endif
 
-#define OPERATIONS_PER_SECOND 100
+#define OPERATIONS_PER_SECOND 500
 
 
 #define MEM_SIZE 4096
@@ -56,18 +56,12 @@ public:
     void dump_memory() const;
     void dump_memory(unsigned int offset, unsigned int length) const;
 private:
-    void init();
+    bool init();
     void process();
 
     void set_variables();
 
-#ifndef WITHOUT_CURSES
-    void init_curses();
-    void update_curses();
-    void destroy_curses();
 
-     Disassembler dis;
-#endif
 
     void draw_logo();
     bool draw_sprite(uint8_t sprite, uint8_t pos_x, uint8_t pos_y);
@@ -87,21 +81,20 @@ private:
 
     void cleanup_exit();
 
-    SDL_Window* gWindow = NULL;
+    void sleep_for_ms(uint32_t ms);
+    void erase_screen();
 
-    SDL_Surface* gScreenSurface = NULL;
-
-    SDL_Renderer* gRenderer = NULL;
-
-    SDL_RWops *logo_data  = NULL;
-
-    SDL_Surface* gLogo = NULL;
-
+    // Sound
     Beeper beeper;
 
-    void sleep_for_ms(uint32_t ms);
-    void flush_screen();
+    // SDL
+    SDL_Window* gWindow;
+    SDL_Surface* gScreenSurface;
+    SDL_Renderer* gRenderer;
+    SDL_RWops *logo_data;
+    SDL_Surface* gLogo;
 
+    // Fonts
     uint8_t font_data[80] = {
             0xF0, 0x90, 0x90, 0x90, 0xF0, //0
             0x20, 0x60, 0x20, 0x20, 0x70, //1
@@ -121,8 +114,11 @@ private:
             0xF0, 0x80, 0xF0, 0x80, 0x80  //F
     };
 
-    uint8_t memory[MEM_SIZE];
+    // Machine State
     uint8_t registers[AMOUNT_REGISTERS];
+    uint8_t memory[MEM_SIZE];
+
+    std::stack<uint16_t> _stack;
 
     bool display[WIDTH][HEIGHT];
 
@@ -144,11 +140,17 @@ private:
     uint8_t v_x;
     uint8_t v_y;
 
-    std::stack<uint16_t> _stack;
-
     uint32_t ops = OPERATIONS_PER_SECOND;
 
     uint32_t file_size;
+
+#ifndef WITHOUT_CURSES
+    void init_curses();
+    void update_curses();
+    void destroy_curses();
+
+     Disassembler dis;
+#endif
 };
 
 

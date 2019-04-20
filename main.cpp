@@ -2,30 +2,29 @@
 
 #include "CPU.h"
 
-#define VERSION "0.2.0"
+#define VERSION "0.2.1"
 
+static const char* OP_HELP = "--help";
+static const char* OP_HELP_S = "-h";
 
-const char* OP_HELP = "--help";
-const char* OP_HELP_S = "-h";
-
-const char* OP_VERSION = "--version";
-const char* OP_VERSION_S = "-v";
+static const char* OP_VERSION = "--version";
+static const char* OP_VERSION_S = "-v";
 
 //not yet implemented
-const char* OP_DISASSEMBLE = "--disassemble";
-const char* OP_DISASSEMBLE_S = "-d";
+static const char* OP_DISASSEMBLE = "--disassemble";
+static const char* OP_DISASSEMBLE_S = "-d";
 
 
-void print_help();
-void print_version();
+        void print_help();
+        void print_version();
 
-int main(int argc, char *argv[]) {
+        int main(int argc, char *argv[]) {
 
-    if(argc == 1) {
-        std::cerr << "Error: Path to ROM-file expected." << std::endl << std::endl;
-        print_help();
-        exit(1);
-    }
+            if(argc == 1) {
+                std::cerr << "Error: Path to ROM-file expected." << std::endl << std::endl;
+                print_help();
+                exit(1);
+            }
     if(argc > 2) {
         std::cerr << "Error: Too many arguments." << std::endl << std::endl;
         print_help();
@@ -33,10 +32,10 @@ int main(int argc, char *argv[]) {
     }
 
     for(int i = 1; i < argc; ++i){
-        if(strcmp(argv[i],OP_HELP)==0|| strcmp(argv[i],OP_HELP_S)==0){
+        if(strcmp(argv[i],OP_HELP)==0 || strcmp(argv[i],OP_HELP_S)==0){
             print_help();
             return 0;
-        } else if (strcmp(argv[i],OP_VERSION)==0|| strcmp(argv[i],OP_VERSION_S)==0 ){
+        } else if (strcmp(argv[i],OP_VERSION)==0 || strcmp(argv[i],OP_VERSION_S)==0 ){
             print_version();
             return 0;
         }

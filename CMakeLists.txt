@@ -10,10 +10,9 @@ add_executable(chippy ${SOURCE_FILES})
 
 find_package(SDL2 REQUIRED)
 
-include_directories(chippy ${SDL2_INCLUDE_DIRS})
-target_link_libraries(chippy ${SDL2_LIBRARIES})
+target_link_libraries(chippy SDL2::SDL2)
 
-option(WITHOUT_CURSES "exclude curses debug output" OFF)
+option(WITHOUT_CURSES "exclude curses debug output" ON)
 
 if(WITHOUT_CURSES)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWITHOUT_CURSES=" )

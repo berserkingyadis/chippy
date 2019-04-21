@@ -8,7 +8,7 @@
 #include <stack>
 #include <cstdint>
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include "beeper.h"
 #include "timer.h"

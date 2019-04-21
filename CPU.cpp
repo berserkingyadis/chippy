@@ -14,7 +14,7 @@
 #include "logo.h"
 #include "timer.h"
 
-#include <SDL2/SDL_audio.h>
+#include <SDL.h>
 
 CPU::CPU(){
     if(!init())exit(1);

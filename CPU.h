@@ -12,7 +12,7 @@
 
 #include "beeper.h"
 
-#ifndef WITHOUT_CURSES
+#ifdef WITH_CURSES
 #include <curses.h>
 #include "disassembler.h"
 #endif
@@ -144,7 +144,7 @@ private:
 
     uint32_t file_size;
 
-#ifndef WITHOUT_CURSES
+#ifdef WITH_CURSES
     void init_curses();
     void update_curses();
     void destroy_curses();

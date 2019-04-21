@@ -9,10 +9,10 @@
 #include <cmath>
 
 #include <chrono>
-#include <thread>
 
 #include "CPU.h"
 #include "logo.h"
+#include "timer.h"
 
 #include <SDL2/SDL_audio.h>
 
@@ -97,7 +97,7 @@ void CPU::dump_machine() const
     dump_memory();
 }
 
-#ifndef WITHOUT_CURSES
+#ifdef WITH_CURSES
 void CPU::update_curses()
 {
     clear();
@@ -259,12 +259,13 @@ void CPU::start() {
         //sleep a bit to maintain op/s
         sleep_for_ms(1000/OPERATIONS_PER_SECOND);
     }
-#ifndef WITHOUT_CURSES
+#ifdef WITH_CURSES
     init_curses();
 #endif
 
     cycle_num=0;
     bool running = true;
+    Timer timer;
     while(running){
         char buf[50];
         sprintf(buf, WINDOW_TITLE" - CPU cycle nr. %d",cycle_num++);
@@ -326,7 +327,7 @@ void CPU::cleanup_exit(){
     gWindow=NULL;
 
     SDL_Quit();
-#ifndef WITHOUT_CURSES
+#ifdef WITH_CURSES
     endwin();
 #endif
 
@@ -472,7 +473,7 @@ void CPU::process(){
 
     set_variables();
 
-#ifndef WITHOUT_CURSES
+#ifdef WITH_CURSES
     update_curses();
 #endif
 

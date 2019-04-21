@@ -11,6 +11,7 @@
 #include <SDL2/SDL.h>
 
 #include "beeper.h"
+#include "timer.h"
 
 #ifdef WITH_CURSES
 #include <curses.h>
@@ -51,6 +52,7 @@ public:
     bool load_rom(const char* file);
     void start();
 
+    //debug methods for showing machine state
     void dump_machine() const;
     void dump_cpu() const;
     void dump_memory() const;
@@ -69,7 +71,6 @@ private:
 
     uint8_t last_pressed;
     bool wait_press = false;
-
     bool draw = false;
 
     void process_key_press(SDL_Keycode pressed);
@@ -143,6 +144,9 @@ private:
     uint32_t ops = OPERATIONS_PER_SECOND;
 
     uint32_t file_size;
+
+    // Timers
+    Timer timer;
 
 #ifdef WITH_CURSES
     void init_curses();

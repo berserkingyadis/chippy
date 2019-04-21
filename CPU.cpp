@@ -265,25 +265,31 @@ void CPU::start() {
 
     cycle_num=0;
     bool running = true;
-    Timer timer;
+    long elapsed = 0, lastFrame = 0;
+    long timer_freq = 1000000/60; //timers have to decrement once every timer_freq (16666 microseconds)
+
+    timer.reset();
     while(running){
+        //update title bar
         char buf[50];
         sprintf(buf, WINDOW_TITLE" - CPU cycle nr. %d",cycle_num++);
         SDL_SetWindowTitle(gWindow, buf);
 
-
+        //inputs
         handle_events();
 
-        process_timers();
-
+        if(elapsed>timer_freq){
+            process_timers();
+            elapsed-=timer_freq;
+        }
         process();
         if(draw){
             render();
             draw=false;
         }
 
-        //sleep a bit to maintain op/s
-        if(!CPU_RUNMODE_STEP)sleep_for_ms(1000/OPERATIONS_PER_SECOND);
+        lastFrame = timer.framedeltaMicroseconds();
+        elapsed += lastFrame;
     }
 }
 

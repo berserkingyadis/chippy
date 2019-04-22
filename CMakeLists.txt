@@ -9,8 +9,12 @@ add_executable(chippy ${SOURCE_FILES})
 
 find_package(SDL2 REQUIRED)
 
+IF (WIN32)
 include_directories(chippy ${SDL2_INCLUDE_DIRS})
 target_link_libraries(chippy ${SDL2_LIBRARIES})
+ELSE()
+target_link_libraries(chippy SDL2::SDL2)
+ENDIF()
 
 option(WITH_CURSES "curses debug output" OFF)
 

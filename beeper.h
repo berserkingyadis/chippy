@@ -2,7 +2,9 @@
 #define BEEPER_H
 
 #include <queue>
+
 #include <SDL.h>
+
 #include <cmath>
 
 struct BeepObject

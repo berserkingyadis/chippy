@@ -4,14 +4,14 @@ project(chippy)
 set(CMAKE_CXX_STANDARD 11)
 
 set(SOURCE_FILES main.cpp CPU.cpp CPU.h disassembler.cpp disassembler.h beeper.cpp beeper.h logo.h timer.cpp timer.h)
+
+
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+
+conan_basic_setup()
+
 add_executable(chippy ${SOURCE_FILES})
-
-
-find_package(SDL2 REQUIRED)
-
-include_directories(chippy ${SDL2_INCLUDE_DIRS})
-target_link_libraries(chippy ${SDL2_LIBRARIES})
-
+target_link_libraries(chippy ${CONAN_LIBS})
 option(WITH_CURSES "curses debug output" OFF)
 
 if(WITH_CURSES)

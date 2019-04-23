@@ -827,11 +827,6 @@ void CPU::cleanup_exit() {
 	SDL_DestroyRenderer(gRenderer);
 	SDL_DestroyWindow(gWindow);
 
-	gScreenSurface = NULL;
-	gLogo = NULL;
-	gRenderer = NULL;
-	gWindow = NULL;
-
 	SDL_Quit();
 
 #ifdef WITH_CURSES

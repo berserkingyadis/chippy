@@ -5,10 +5,10 @@
 
 class Timer {
 public:
-    Timer();
-    void reset();
-    long framedeltaMicroseconds();
+	Timer();
+	void reset();
+	long framedeltaMicroseconds();
 private:
-    std::chrono::high_resolution_clock::time_point m_timestamp;
+	std::chrono::high_resolution_clock::time_point m_timestamp;
 };
 #endif

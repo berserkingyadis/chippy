@@ -18,6 +18,12 @@ ENDIF()
 
 option(WITH_CURSES "curses debug output" OFF)
 
+if(MSVC)
+  target_compile_options(chippy PRIVATE /W4)
+else()
+  target_compile_options(chippy PRIVATE -Wall -Wextra -pedantic)
+endif()
+
 if(WITH_CURSES)
     find_package(Curses REQUIRED)
     target_link_libraries(chippy ${CURSES_LIBRARIES})

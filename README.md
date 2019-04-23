@@ -5,11 +5,11 @@ Since Java sucks for low level unsigned operations, I will port my Chip-8 Emulat
 
 ## Dependencies
 
-You will need SDL2, ncurses and cmake to compile.
+You will need SDL2 and cmake to compile on Windows or Linux. For Linux, ncurses is optional for debugging machine state.
 
 ```bash
 mkdir build && cd build
-cmake .. [-DWITHOUT_CURSES=1](optional)
+cmake .. [-DWITH_CURSES](optional)
 make
 ```
 
@@ -19,13 +19,10 @@ make
 ./chippy <path to ROM>
 ```
 
-## Crosscompiling for Windows
+## Compiling under Linux
 
-There is a script called ```crosscompile_win64.sh``` in the repo which compiles the emulator for windows. For it to work you will need the following packages installed:
+After installing SDL2 (and ncurses) you can just follow the steps under #Dependencies, cmake will find the dependencies.
 
-* mingw-w64-gcc
-* mingw-w64-sdl2
-* mingw-w64-winpthreads
-* mingw-w64-pdcurses
+## Compiling under Windows
 
-For the crosscompiled executable to work, you need to put the dll's from the folder ```redist_win``` in the same folder as the exe.
+You will need to download the [SDL2 develop libraries](https://www.libsdl.org/download-2.0.php). For cmake to find it follow [this tutorial](https://trenki2.github.io/blog/2017/06/02/using-sdl2-with-cmake/).

@@ -1,11 +1,10 @@
 #ifndef BEEPER_H
 #define BEEPER_H
 
+#include <cmath>
 #include <queue>
 
 #include <SDL.h>
-
-#include <cmath>
 
 struct BeepObject
 {

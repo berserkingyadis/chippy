@@ -5,8 +5,9 @@
 #ifndef CHIPPY_CPU_H
 #define CHIPPY_CPU_H
 
-#include <stack>
 #include <cstdint>
+#include <stack>
+#include <vector>
 
 #include <SDL.h>
 
@@ -18,7 +19,8 @@
 #include "disassembler.h"
 #endif
 
-#define OPERATIONS_PER_SECOND 500
+#define MICROSECONDS_PER_SECOND 1000000
+#define TIMER_FREQUENCY 60
 
 
 #define MEM_SIZE 4096
@@ -39,11 +41,7 @@
 #define HEX( x , s ) "0x" << std::setw(s) << std::setfill('0') << std::hex << (unsigned)(x) << std::dec
 #endif
 
-
-
 #define WINDOW_TITLE "chippy chip8-emulator"
-
-
 
 class CPU {
 public:
@@ -57,26 +55,25 @@ public:
     void dump_cpu() const;
     void dump_memory() const;
     void dump_memory(unsigned int offset, unsigned int length) const;
+
 private:
     bool init();
     void process();
 
     void set_variables();
 
-
-
     void draw_logo();
     bool draw_sprite(uint8_t sprite, uint8_t pos_x, uint8_t pos_y);
-    void handle_events();
+   
+	bool handle_events();
+	uint8_t last_pressed;
+	bool wait_press = false;
+	bool process_key_press(SDL_Keycode pressed);
+ 
+	void process_timers();
 
-    uint8_t last_pressed;
-    bool wait_press = false;
-    bool draw = false;
-
-    void process_key_press(SDL_Keycode pressed);
-    void process_timers();
-
-    void render() const;
+	bool draw = false;
+    void render();
 
     void beep() const;
 
@@ -141,12 +138,13 @@ private:
     uint8_t v_x;
     uint8_t v_y;
 
-    uint32_t ops = OPERATIONS_PER_SECOND;
-
     uint32_t file_size;
 
     // Timers
     Timer timer;
+
+	// Performance measurement
+	std::vector<long> amountCirclesPerSecond;
 
 #ifdef WITH_CURSES
     void init_curses();
@@ -156,6 +154,4 @@ private:
      Disassembler dis;
 #endif
 };
-
-
 #endif //CHIPPY_CPU_H

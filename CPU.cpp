@@ -1,13 +1,8 @@
-//
-// Created by bers on 11/26/16.
-//
-
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <sstream>
 #include <cmath>
-
 #include <chrono>
 
 #include "CPU.h"
@@ -47,6 +42,9 @@ bool CPU::init() {
     nnn=0;
     x=0;
     y=0;
+	v_x = 0;
+	v_y = 0;
+
     _stack.empty();
 
     //seed the random number generator
@@ -54,13 +52,13 @@ bool CPU::init() {
 
     //init VIDEO
     std::cout << "initiating sdl..";
-    if(SDL_Init(SDL_INIT_VIDEO) == -1){
+    if(SDL_Init(SDL_INIT_VIDEO) < 0){
         std::cerr << "Cannot init SDL_VIDEO, exiting." << std::endl;
         return false;
     }
 
     //init AUDIO
-    if(SDL_Init(SDL_INIT_AUDIO) == -1){
+    if(SDL_Init(SDL_INIT_AUDIO) < 0){
         std::cerr << "Cannot init SDL_AUDIO"
                   << ", exiting." << std::endl;
         return false;
@@ -245,51 +243,73 @@ bool CPU::load_rom(const char* file_name){
 void CPU::start() {
 
     //show logo for half a second
-    uint32_t cycle_num = 0,
-            time_past = 0;
+	long cycle_num = 0, cycle_performance = 0;
 
     bool logo = true;
     SDL_SetWindowTitle(gWindow,WINDOW_TITLE" - welcome!");
+
+	long elapsed = 0, elapsed_performance = 0, lastFrame = 0;
+	long logo_duration = MICROSECONDS_PER_SECOND / 2; // we want to see the logo half a second (if at all lol)
+	timer.reset();
     while(logo){
-        cycle_num++;
-        if(cycle_num>(OPERATIONS_PER_SECOND))logo=false;
         draw_logo();
-        //sleep a bit to maintain op/s
-        sleep_for_ms(1000/OPERATIONS_PER_SECOND);
+		elapsed += timer.framedeltaMicroseconds();
+		if (elapsed >= logo_duration)logo = false;
     }
+	
 #ifdef WITH_CURSES
     init_curses();
 #endif
 
-    cycle_num=0;
     bool running = true;
-    long elapsed = 0, lastFrame = 0;
-    long timer_freq = 1000000/60; //timers have to decrement once every timer_freq (16666 microseconds)
+	long timer_freq = MICROSECONDS_PER_SECOND / TIMER_FREQUENCY; //timers have to decrement once every timer_freq (16666 microseconds)
+	elapsed = 0;
+	
+	lastFrame = 0;
+    
 
     timer.reset();
     while(running){
+		++cycle_performance;
+		++cycle_num;
+
         //update title bar
         char buf[50];
-        sprintf(buf, WINDOW_TITLE" - CPU cycle nr. %d",cycle_num++);
+        sprintf(buf, WINDOW_TITLE" - CPU cycle nr. %d", cycle_num);
         SDL_SetWindowTitle(gWindow, buf);
 
         //inputs
-        handle_events();
+        if(!handle_events())running=false;
 
         if(elapsed>timer_freq){
             process_timers();
             elapsed-=timer_freq;
         }
         process();
-        if(draw){
-            render();
-            draw=false;
-        }
+        if(draw)render();
+        
 
         lastFrame = timer.framedeltaMicroseconds();
         elapsed += lastFrame;
+		elapsed_performance += lastFrame;
+		if (elapsed_performance >= MICROSECONDS_PER_SECOND) {
+			amountCirclesPerSecond.push_back(cycle_performance);
+			std::cout << "op/sec = " << cycle_performance << std::endl;
+			elapsed_performance -= MICROSECONDS_PER_SECOND;
+			cycle_performance = 0;
+		}
     }
+	long op_per_sec = 0;
+	for (long const& value : amountCirclesPerSecond) {
+		
+		op_per_sec += value;
+	}
+	op_per_sec /= amountCirclesPerSecond.size();
+	std::cout << "average op/second = " << op_per_sec << std::endl;
+	std::cout << "Shutting down emulator.." << std::endl;
+	cleanup_exit();
 }
+
 
 void CPU::process_timers(){
     if(delay_timer>0)delay_timer--;
@@ -300,45 +320,28 @@ void CPU::process_timers(){
         beeper.beep(800,100);
     }
 }
-void CPU::handle_events(){
+bool CPU::handle_events(){
     SDL_Event event;
 
     while(SDL_PollEvent(&event)){
         //was a key pressed?
         switch(event.type){
         case SDL_KEYDOWN:
-            process_key_press(event.key.keysym.sym);
-            break;
+			return process_key_press(event.key.keysym.sym);
+			break;
         case SDL_QUIT:
             std::cout << "SDL_QUIT recieved." << std::endl;
-            cleanup_exit();
+			return false;
+			break;
         default:
             break;
 
         }
     }
+	return true;
 }
 
-void CPU::cleanup_exit(){
-
-    SDL_FreeSurface(gScreenSurface);
-    gScreenSurface=NULL;
-
-    SDL_FreeSurface(gLogo);
-    gLogo=NULL;
-
-    SDL_DestroyWindow(gWindow);
-    gWindow=NULL;
-
-    SDL_Quit();
-#ifdef WITH_CURSES
-    endwin();
-#endif
-
-    std::cout << "Shutting down emulator.." << std::endl;
-    exit(0);
-}
-void CPU::process_key_press(SDL_Keycode pressed)
+bool CPU::process_key_press(SDL_Keycode pressed)
 {
 
     /*
@@ -352,6 +355,10 @@ void CPU::process_key_press(SDL_Keycode pressed)
      *
      *  TODO: make keys configurable
      */
+
+
+	bool esc_pressed = false;
+
     switch(pressed){
     case SDLK_1:
         last_pressed=0x1;
@@ -405,6 +412,10 @@ void CPU::process_key_press(SDL_Keycode pressed)
         last_pressed=0xa;
         wait_press=false;
         break;
+	case SDLK_z:
+		last_pressed = 0xa;
+		wait_press = false;
+		break;
     case SDLK_x:
         last_pressed=0x0;
         wait_press=false;
@@ -419,14 +430,16 @@ void CPU::process_key_press(SDL_Keycode pressed)
         break;
     case SDLK_ESCAPE:
         std::cout << "Escape key was pressed." << std::endl;
-        cleanup_exit();
+		esc_pressed = true;
         break;
     default:
         break; //do nothing
     }
+
+	return !esc_pressed;
 }
 
-void CPU::render() const {
+void CPU::render() {
 
     //draw the background (black)
     SDL_SetRenderDrawColor(gRenderer, 0x00,0x00,0x00,SDL_ALPHA_OPAQUE);
@@ -448,6 +461,7 @@ void CPU::render() const {
         }
     }
     SDL_RenderPresent(gRenderer);
+	draw = false;
 }
 
 
@@ -798,4 +812,28 @@ void CPU::erase_screen()
             display[i][j]=false;
         }
     }
+}
+
+
+
+void CPU::cleanup_exit() {
+
+	std::cout << "Shutting down sdl2.." << std::endl;
+	
+	SDL_FreeSurface(gScreenSurface);
+	SDL_FreeSurface(gLogo);
+	SDL_DestroyRenderer(gRenderer);
+	SDL_DestroyWindow(gWindow);
+	
+	gScreenSurface = NULL;
+	gLogo = NULL;
+	gRenderer = NULL;
+	gWindow = NULL; 
+
+	SDL_Quit();
+
+#ifdef WITH_CURSES
+	std::cout << "Shutting down curses..." << std::endl;
+	endwin();
+#endif
 }

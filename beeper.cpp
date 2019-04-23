@@ -1,4 +1,5 @@
 #include "beeper.h"
+
 Beeper::Beeper()
 {
     SDL_AudioSpec desiredSpec;

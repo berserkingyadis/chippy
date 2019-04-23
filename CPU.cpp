@@ -326,22 +326,25 @@ void CPU::process_timers() {
 bool CPU::handle_events() {
 	SDL_Event event;
 
+	bool continue_emulator = true;
 	while (SDL_PollEvent(&event)) {
 		//was a key pressed?
 		switch (event.type) {
 		case SDL_KEYDOWN:
-			return process_key_press(event.key.keysym.sym);
+			if (!process_key_press(event.key.keysym.sym)) {
+				continue_emulator = false;
+			}
 			break;
 		case SDL_QUIT:
 			std::cout << "SDL_QUIT recieved." << std::endl;
-			return false;
+			continue_emulator = false;
 			break;
 		default:
 			break;
 
 		}
 	}
-	return true;
+	return continue_emulator;
 }
 
 bool CPU::process_key_press(SDL_Keycode pressed)

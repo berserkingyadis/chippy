@@ -478,7 +478,7 @@ bool CPU::draw_sprite(uint8_t sprite, uint8_t pos_x, uint8_t pos_y)
 
 	bool erased = false;
 
-	for (uint8_t i = 7; i >= 0; i--) {
+	for (int8_t i = 7; i >= 0; i--) {
 		if ((sprite&bitmask) > 0) {
 			if (display[(pos_x + i)][pos_y] == true)erased = true;
 			display[(pos_x + i)][pos_y] ^= true;

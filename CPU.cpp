@@ -265,8 +265,8 @@ void CPU::start() {
 
 	bool running = true;
 	uint32_t timer_freq = MICROSECONDS_PER_SECOND / TIMER_FREQUENCY; //timers have to decrement once every timer_freq (16666 microseconds)
-	elapsed = 0;
-
+    char buf[50];
+    elapsed = 0;
 	lastFrame = 0;
 
 
@@ -275,17 +275,14 @@ void CPU::start() {
 		++cycle_performance;
 		++cycle_num;
 
-		//update title bar
-		char buf[50];
-		sprintf(buf, WINDOW_TITLE" - CPU cycle nr. %d", cycle_num);
-		SDL_SetWindowTitle(gWindow, buf);
-
 		//inputs
 		if (!handle_events())running = false;
 
 		if (elapsed > timer_freq) {
 			process_timers();
 			elapsed -= timer_freq;
+            sprintf(buf, WINDOW_TITLE" - CPU cycle nr. %d", cycle_num);
+            SDL_SetWindowTitle(gWindow, buf);
 		}
 		process();
 		if (draw)render();
@@ -324,7 +321,6 @@ void CPU::process_timers() {
 	}
 }
 bool CPU::handle_events() {
-	SDL_Event event;
 
 	bool continue_emulator = true;
 	while (SDL_PollEvent(&event)) {

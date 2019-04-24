@@ -65,6 +65,7 @@ private:
 	void draw_logo();
 	bool draw_sprite(uint8_t sprite, uint8_t pos_x, uint8_t pos_y);
 
+    SDL_Event event;
 	bool handle_events();
 	uint8_t last_pressed;
 	bool wait_press = false;

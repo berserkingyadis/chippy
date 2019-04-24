@@ -284,23 +284,23 @@ void CPU::start() {
             sprintf(buf, WINDOW_TITLE" - CPU cycle nr. %d", cycle_num);
             SDL_SetWindowTitle(gWindow, buf);
 		}
-		process();
-		if (draw)render();
+        if(!process())running = false;
+        if (draw)render();
 
 
 		lastFrame = timer.framedeltaMicroseconds();
 		elapsed += lastFrame;
-		elapsed_performance += lastFrame;
+        elapsed_performance += lastFrame;
 		if (elapsed_performance >= MICROSECONDS_PER_SECOND) {
 			amountCirclesPerSecond.push_back(cycle_performance);
 			std::cout << "op/sec = " << cycle_performance << std::endl;
 			elapsed_performance -= MICROSECONDS_PER_SECOND;
 			cycle_performance = 0;
-		}
+        }
 	}
 
 	uint32_t op_per_sec = 0;
-	for (long const& value : amountCirclesPerSecond) {
+    for (long const& value : amountCirclesPerSecond) {
 
 		op_per_sec += value;
 	}
@@ -323,13 +323,11 @@ void CPU::process_timers() {
 bool CPU::handle_events() {
 
 	bool continue_emulator = true;
-	while (SDL_PollEvent(&event)) {
+    while (SDL_PollEvent(&event) && continue_emulator) {
 		//was a key pressed?
 		switch (event.type) {
 		case SDL_KEYDOWN:
-			if (!process_key_press(event.key.keysym.sym)) {
-				continue_emulator = false;
-			}
+            if(!process_key_press(event.key.keysym.sym)) continue_emulator = false;
 			break;
 		case SDL_QUIT:
 			std::cout << "SDL_QUIT recieved." << std::endl;
@@ -433,6 +431,7 @@ bool CPU::process_key_press(SDL_Keycode pressed)
 	case SDLK_ESCAPE:
 		std::cout << "Escape key was pressed." << std::endl;
 		esc_pressed = true;
+        wait_press = false;
 		break;
 	default:
 		break; //do nothing
@@ -487,8 +486,8 @@ bool CPU::draw_sprite(uint8_t sprite, uint8_t pos_x, uint8_t pos_y)
 	return erased;
 }
 
-void CPU::process() {
-
+bool CPU::process() {
+    bool continue_emulator = true;
 	set_variables();
 
 #ifdef WITH_CURSES
@@ -497,7 +496,7 @@ void CPU::process() {
 
 	program_counter += 2;
 
-	bool unset;
+    bool unset;
 	switch (opcode & 0xF000) {
 
 		/*
@@ -605,7 +604,7 @@ void CPU::process() {
 			 */
 	case 0x8000:
 		switch (n) {
-			uint16_t temp;
+            uint16_t temp;
 		case 0:
 			registers[x] = v_y;
 			break;
@@ -742,9 +741,9 @@ void CPU::process() {
 		case 0x0A:
 			wait_press = true;
 			while (wait_press) {
-				handle_events();
-				sleep_for_ms(100); //TODO maybe another amount
-			}
+                if(!handle_events())continue_emulator=false;
+                sleep_for_ms(50);
+            }
 			registers[x] = last_pressed;
 			break;
 		case 0x15:
@@ -788,7 +787,8 @@ void CPU::process() {
 		}
 		break;
 
-	}
+    }
+    return continue_emulator;
 }
 
 void CPU::set_variables()

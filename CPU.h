@@ -58,7 +58,7 @@ public:
 
 private:
 	bool init();
-	void process();
+    bool process();
 
 	void set_variables();
 

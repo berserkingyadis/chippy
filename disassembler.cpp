@@ -60,40 +60,40 @@ std::string Disassembler::dis_opcode(uint16_t opcode) const
 					   The interpreter increments the stack pointer, then puts the current PC on the top of the stack. The PC is then set to nnn.
 				*/
 	case 0x2000:
-		ss << "2NNN - execute subcoutine starting at adress " << HEX(opcode & 0x0FFF, 4);
+		ss << "2NNN - execute subcoutine starting at adress " << HEX(nnn, 4);
 		break;
 
 		/*
 			3XNN	Skip the following instruction if the value of register VX equals NN
 			 */
 	case 0x3000:
-		ss << "3XNN - skip next instruction if register " << HEX(x, 2) << " equals " << HEX(nn, 2);
+		ss << "3XNN - skip next instruction if register V" << HEX(x, 2) << " equals " << HEX(nn, 2);
 		break;
 
 		/*
 			4XNN	Skip the following instruction if the value of register VX is not equal to NN
 			*/
 	case 0x4000:
-		ss << "4XNN - skip next instruction if register " << HEX((opcode & 0x0F00) >> 8, 2) << " not equals " << HEX(opcode & 0x00FF, 2);
+		ss << "4XNN - skip next instruction if register V" << HEX(x, 2) << " not equals " << HEX(nn, 2);
 		break;
 
 		/*
 			5XY0	Skip the following instruction if the value of register VX is equal to the value of register VY
 			 */
 	case 0x5000:
-		ss << "5XY0 - skip next instruction if register " << HEX(x, 2) << " not equals register " << HEX(y, 2);
+		ss << "5XY0 - skip next instruction if register V" << HEX(x, 2) << " not equals registerV " << HEX(y, 2);
 		break;
 		/*
 		   6XNN	Store number NN in register VX
 			*/
 	case 0x6000:
-		ss << "6XNN - store number " << HEX(nn, 2) << " in register " << HEX(x, 2);
+		ss << "6XNN - store number " << HEX(nn, 2) << " in register V" << HEX(x, 2);
 		break;
 		/*
 			7XNN	Add the value NN to register VX
 			 */
 	case 0x7000:
-		ss << "7XNN - add " << HEX(nn, 2) << " to register " << HEX(x, 2);
+		ss << "7XNN - add " << HEX(nn, 2) << " to register V" << HEX(x, 2);
 		break;
 		/*
 			8XY0	Store the value of register VY in register VX
@@ -117,25 +117,25 @@ std::string Disassembler::dis_opcode(uint16_t opcode) const
 	case 0x8000:
 		switch (n) {
 		case 0:
-			ss << "8XY0 - store the value of register " << HEX(y, 2) << " in register " << HEX(x, 2);
+			ss << "8XY0 - store the value of register V" << HEX(y, 2) << " in register V" << HEX(x, 2);
 			break;
 		case 1:
-			ss << "8XY1 - set register " << HEX(x, 2) << " to register " << HEX(x, 2) << " OR register " << HEX(y, 2);
+			ss << "8XY1 - set register V" << HEX(x, 2) << " to register V" << HEX(x, 2) << " OR register V" << HEX(y, 2);
 			break;
 		case 2:
-			ss << "8XY2 - set register " << HEX(x, 2) << " to register " << HEX(x, 2) << " AND register " << HEX(y, 2);
+			ss << "8XY2 - set register V" << HEX(x, 2) << " to register V" << HEX(x, 2) << " AND register V" << HEX(y, 2);
 			break;
 		case 3:
-			ss << "8XY3 - set register " << HEX(x, 2) << " to register " << HEX(x, 2) << " XOR register " << HEX(y, 2);
+			ss << "8XY3 - set register V" << HEX(x, 2) << " to register V" << HEX(x, 2) << " XOR register V" << HEX(y, 2);
 			break;
 		case 4:
-			ss << "8XY4 - add the value of register " << HEX(y, 2) << " to register " << HEX(x, 2) << " (register 0xF set to 1 if carry)";
+			ss << "8XY4 - add the value of register V" << HEX(y, 2) << " to register V" << HEX(x, 2) << " (register VF set to 1 if carry)";
 			break;
 		case 5:
-			ss << "8XY5 - subtract the value of register " << HEX(y, 2) << " from register " << HEX(x, 2) << " (register 0xF set to 1 if not borrow)";
+			ss << "8XY5 - subtract the value of register V" << HEX(y, 2) << " from register V" << HEX(x, 2) << " (register 0xF set to 1 if not borrow)";
 			break;
 		case 6:
-			ss << "8XY6 - store the value of register " << HEX(y, 2) << " shifted right 1 bit in register " << HEX(x, 2) << " (register 0xF = LSB)";
+			ss << "8XY6 - store the value of register V" << HEX(y, 2) << " shifted right 1 bit in register V" << HEX(x, 2) << " (register 0xF = LSB)";
 			break;
 		case 7:
 			ss << "8XY7 - subtract the value of register " << HEX(x, 2) << " from register " << HEX(y, 2) << " (register 0xF set to 1 if not borrow)";
@@ -253,7 +253,6 @@ std::string Disassembler::dis_opcode(uint16_t opcode) const
 		break;
 
 	}
-	ss << std::endl;
 
 	std::string temp = ss.str();
 	return temp.c_str();

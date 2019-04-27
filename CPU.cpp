@@ -186,7 +186,7 @@ void CPU::init_curses()
 #endif
 void CPU::dump_memory() const
 {
-	std::cout << std::endl << "== dumping the memory state:" << std::endl;
+	std::cout << std::endl << "==== dumping the memory state:" << std::endl;
 
 	for (uint32_t i = 0x200; i < (file_size + 0x200); i += 2) {
 		for (int col = 0; col < 4; col++) {
@@ -201,9 +201,9 @@ void CPU::dump_memory() const
 
 void CPU::dump_cpu() const
 {
-	std::cout << std::endl << "== dumping the cpu state" << std::endl;
+	std::cout << std::endl << "==== dumping the cpu state" << std::endl;
 	std::cout << "== program counter: " << HEX(program_counter, 4) << std::endl;
-	std::cout << "== opcode:" << std::endl;
+	std::cout << "== opcode: " << HEX(opcode, 4) << std::endl;
 	std::cout << "== registers:" << std::endl;
 	for (int i = 0; i < AMOUNT_REGISTERS; i++) {
 		std::cout << "register V" << i << " = " << HEX(registers[i], 2) << std::endl;
@@ -211,6 +211,7 @@ void CPU::dump_cpu() const
 	std::cout << "== special registers:" << std::endl;
 	std::cout << "register I = " << HEX(I, 4) << std::endl;
 }
+
 
 bool CPU::load_rom(const char* file_name) {
 
@@ -252,6 +253,7 @@ void CPU::start() {
 
 	uint32_t elapsed = 0, elapsed_performance = 0, lastFrame = 0;
 	uint32_t logo_duration = MICROSECONDS_PER_SECOND / 2; // we want to see the logo half a second (if at all lol)
+	 
 	timer.reset();
 	while (logo) {
 		draw_logo();
@@ -265,7 +267,8 @@ void CPU::start() {
 
 	bool running = true;
 	uint32_t timer_freq = MICROSECONDS_PER_SECOND / TIMER_FREQUENCY; //timers have to decrement once every timer_freq (16666 microseconds)
-    char buf[50];
+	uint32_t cpu_freq_ms = 1000u / CPU_SPEED;
+	char buf[50];
     elapsed = 0;
 	lastFrame = 0;
 
@@ -280,14 +283,13 @@ void CPU::start() {
 
 		if (elapsed > timer_freq) {
 			process_timers();
+			
 			elapsed -= timer_freq;
             sprintf(buf, WINDOW_TITLE" - CPU cycle nr. %d", cycle_num);
             SDL_SetWindowTitle(gWindow, buf);
 		}
         if(!process())running = false;
-        if (draw)render();
-
-
+		if (draw)render();
 		lastFrame = timer.framedeltaMicroseconds();
 		elapsed += lastFrame;
         elapsed_performance += lastFrame;
@@ -299,13 +301,15 @@ void CPU::start() {
         }
 	}
 
-	uint32_t op_per_sec = 0;
-    for (long const& value : amountCirclesPerSecond) {
+	if (amountCirclesPerSecond.size() > 0) {
+		uint32_t op_per_sec = 0;
+		for (uint32_t const& value : amountCirclesPerSecond) {
 
-		op_per_sec += value;
+			op_per_sec += value;
+		}
+		op_per_sec /= amountCirclesPerSecond.size();
+		std::cout << "average op/second = " << op_per_sec << std::endl;
 	}
-	op_per_sec /= amountCirclesPerSecond.size();
-	std::cout << "average op/second = " << op_per_sec << std::endl;
 
 	std::cout << "Shutting down emulator.." << std::endl;
 	cleanup_exit();
@@ -467,6 +471,7 @@ void CPU::render() {
 
 void CPU::sleep_for_ms(uint32_t ms)
 {
+	std::cout << "emu wants to sleep for " << ms << " milliseconds." << std::endl;
 	SDL_Delay(ms);
 }
 bool CPU::draw_sprite(uint8_t sprite, uint8_t pos_x, uint8_t pos_y)
@@ -478,8 +483,8 @@ bool CPU::draw_sprite(uint8_t sprite, uint8_t pos_x, uint8_t pos_y)
 
 	for (int8_t i = 7; i >= 0; i--) {
 		if ((sprite&bitmask) > 0) {
-			if (display[(pos_x + i)][pos_y] == true)erased = true;
-			display[(pos_x + i)][pos_y] ^= true;
+			if (display[(pos_x + i) % WIDTH][pos_y % HEIGHT] == true)erased = true;
+			display[(pos_x + i) % WIDTH][pos_y % HEIGHT] ^= true;
 		}
 		bitmask <<= 1;
 	}
@@ -493,10 +498,12 @@ bool CPU::process() {
 #ifdef WITH_CURSES
 	update_curses();
 #endif
-
+	//std::cout << "memory[" << HEX(program_counter, 4) << "] => " << HEX(opcode, 4) << " dis: " << disassembler.dis_opcode(opcode) << std::endl;
 	program_counter += 2;
 
     bool unset;
+	uint16_t temp;
+	
 	switch (opcode & 0xF000) {
 
 		/*
@@ -604,7 +611,6 @@ bool CPU::process() {
 			 */
 	case 0x8000:
 		switch (n) {
-            uint16_t temp;
 		case 0:
 			registers[x] = v_y;
 			break;
@@ -652,8 +658,9 @@ bool CPU::process() {
 			registers[x] = temp & 0xFF;
 			break;
 		case 0xE:
-			registers[0xF] = v_y & 0x80;
-			registers[x] = v_y << 0x1;
+			registers[0xF] = v_y >> 7;
+			registers[y] = v_y << 1;
+			registers[x] = registers[y];
 			break;
 
 		}
@@ -789,6 +796,20 @@ bool CPU::process() {
 
     }
     return continue_emulator;
+}
+
+void CPU::dump_variables() const
+{
+	std::cout << std::endl << "==== dumping help variables" << std::endl;
+	std::cout << "== opcode: " << HEX(opcode, 4) << std::endl;
+	std::cout << "== nnn: " << HEX(nnn, 4) << std::endl;
+	std::cout << "== nn: " << HEX(nn, 2) << std::endl;
+	std::cout << "== n: " << HEX(n, 2) << std::endl;
+	std::cout << "== x: " << HEX(x, 2) << std::endl;
+	std::cout << "== y: " << HEX(y, 2) << std::endl;
+	std::cout << "== v_x: " << HEX(v_x, 2) << std::endl;
+	std::cout << "== v_y: " << HEX(v_y, 2) << std::endl;
+	
 }
 
 void CPU::set_variables()

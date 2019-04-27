@@ -13,10 +13,11 @@
 
 #include "beeper.h"
 #include "timer.h"
+#include "disassembler.h"
 
 #ifdef WITH_CURSES
 #include <curses.h>
-#include "disassembler.h"
+
 #endif
 
 #define MICROSECONDS_PER_SECOND 1000000
@@ -35,6 +36,8 @@
 #define DISPLAY_HEIGHT HEIGHT * SCALE
 
 #define CPU_RUNMODE_STEP 0
+#define CPU_LIMIT_OPS 0
+#define CPU_SPEED 500
 
 //for printing debug information
 #ifndef HEX
@@ -55,6 +58,7 @@ public:
 	void dump_cpu() const;
 	void dump_memory() const;
 	void dump_memory(uint32_t offset, uint32_t length) const;
+	void CPU::dump_variables() const;
 
 private:
 	bool init();
@@ -146,6 +150,9 @@ private:
 
 	// Performance measurement
 	std::vector<uint32_t> amountCirclesPerSecond;
+
+	// Disassembler
+	Disassembler disassembler;
 
 #ifdef WITH_CURSES
 	void init_curses();
